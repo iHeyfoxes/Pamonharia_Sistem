@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel da Pamonharia</title>
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<header class="topo"><div class="container"><div class="marca">🌽 Pamonharia <span>Painel</span></div><a href="index.html">← Voltar para o cardápio</a></div></header>
+<main class="container">
+<section class="cabecalho"><div><p class="etiqueta">ADMINISTRAÇÃO</p><h1>Pedidos</h1><p>Acompanhe os pedidos recebidos neste navegador.</p></div><button class="botao perigo" onclick="limparPedidos()">Limpar pedidos</button></section>
+<section class="resumos">
+<div class="resumo"><span>📦 Total</span><strong id="total-pedidos">0</strong></div>
+<div class="resumo"><span>⏳ Pendentes</span><strong id="pendentes">0</strong></div>
+<div class="resumo"><span>💰 Faturamento</span><strong id="faturamento">R$ 0,00</strong></div>
+</section>
+<section class="filtros">
+<button class="filtro ativo" onclick="filtrarPedidos('todos',this)">Todos</button>
+<button class="filtro" onclick="filtrarPedidos('pendente',this)">Pendentes</button>
+<button class="filtro" onclick="filtrarPedidos('preparando',this)">Preparando</button>
+<button class="filtro" onclick="filtrarPedidos('pronto',this)">Prontos</button>
+<button class="filtro" onclick="filtrarPedidos('finalizado',this)">Finalizados</button>
+</section>
+<section id="pedidos" class="pedidos"></section>
+</main>
+<script src="admin.js"></script>
+</body>
+</html>
