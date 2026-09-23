@@ -96,19 +96,34 @@ function salvarPedidoLocal(pedido){
 }
 
 async function salvarPedidoNoSupabase(nome,telefone,tipo,endereco,complemento,observacao,total) {
-    const {data:cliente,error:clienteError}=await supabaseClient.from("customers").insert({name:nome,phone:telefone}).select("id").single();
+    // Geramos os IDs no navegador para não precisar de SELECT após o INSERT.
+    // Isso permite que o cliente anônimo crie o pedido respeitando o RLS.
+    const customerId = crypto.randomUUID();
+    const orderId = crypto.randomUUID();
+    const createdAt = new Date().toISOString();
+
+    const {error:clienteError}=await supabaseClient.from("customers").insert({
+        id:customerId, name:nome, phone:telefone
+    });
     if(clienteError)throw clienteError;
 
-    const {data:pedido,error:pedidoError}=await supabaseClient.from("orders").insert({
-        customer_id:cliente.id, order_type:tipo, address:tipo==="delivery"?endereco:null,
-        complement:tipo==="delivery"?complemento||null:null, observation:observacao||null, total
-    }).select("id,created_at,status").single();
+    const {error:pedidoError}=await supabaseClient.from("orders").insert({
+        id:orderId, customer_id:customerId, order_type:tipo,
+        address:tipo==="delivery"?endereco:null,
+        complement:tipo==="delivery"?complemento||null:null,
+        observation:observacao||null, total
+    });
     if(pedidoError)throw pedidoError;
 
-    const itens=carrinho.map(item=>({order_id:pedido.id,product_id:item.id,product_name:item.nome,unit_price:item.preco,quantity:item.quantidade,subtotal:item.preco*item.quantidade}));
+    const itens=carrinho.map(item=>({
+        order_id:orderId, product_id:item.id, product_name:item.nome,
+        unit_price:item.preco, quantity:item.quantidade,
+        subtotal:item.preco*item.quantidade
+    }));
     const {error:itensError}=await supabaseClient.from("order_items").insert(itens);
     if(itensError)throw itensError;
-    return pedido;
+
+    return {id:orderId, created_at:createdAt, status:"pending"};
 }
 
 async function enviarPedido(event) {
