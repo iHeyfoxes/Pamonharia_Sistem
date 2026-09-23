@@ -10,9 +10,7 @@
     <header class="topo">
         <div class="container topo-conteudo">
             <div class="logo">🌽 <span>Pamonharia</span></div>
-            <button class="carrinho" onclick="mostrarCarrinho()">
-                🛒 Carrinho <span id="contador">0</span>
-            </button>
+            <button class="carrinho" onclick="mostrarCarrinho()">🛒 Carrinho <span id="contador">0</span></button>
         </div>
     </header>
 
@@ -33,7 +31,6 @@
                 <p class="etiqueta">NOSSO CARDÁPIO</p>
                 <h2>Escolha seus favoritos</h2>
             </div>
-
             <div class="categorias">
                 <button class="categoria ativa" onclick="filtrar('todos', this)">Todos</button>
                 <button class="categoria" onclick="filtrar('pamonhas', this)">🌽 Pamonhas</button>
@@ -41,7 +38,6 @@
                 <button class="categoria" onclick="filtrar('doces', this)">🥣 Doces</button>
                 <button class="categoria" onclick="filtrar('bebidas', this)">🥤 Bebidas</button>
             </div>
-
             <div id="produtos" class="produtos"></div>
         </section>
     </main>
@@ -51,11 +47,52 @@
             <button class="fechar" onclick="fecharCarrinho()">×</button>
             <h2>Seu carrinho 🛒</h2>
             <div id="itens-carrinho"></div>
-            <div class="total">
-                <span>Total</span>
-                <strong id="total">R$ 0,00</strong>
+            <div class="total"><span>Total</span><strong id="total">R$ 0,00</strong></div>
+            <button class="botao finalizar" onclick="abrirCheckout()">Continuar pedido</button>
+        </div>
+    </div>
+
+    <div id="checkout" class="modal escondido">
+        <div class="modal-caixa checkout-caixa">
+            <button class="fechar" onclick="fecharCheckout()">×</button>
+            <p class="etiqueta">FINALIZAR PEDIDO</p>
+            <h2>Como você quer receber?</h2>
+
+            <div class="opcoes-entrega">
+                <label class="opcao-entrega">
+                    <input type="radio" name="tipoEntrega" value="delivery" checked onchange="alternarEndereco()">
+                    <span>🛵 Entrega</span>
+                </label>
+                <label class="opcao-entrega">
+                    <input type="radio" name="tipoEntrega" value="retirada" onchange="alternarEndereco()">
+                    <span>🏪 Retirar na loja</span>
+                </label>
             </div>
-            <button class="botao finalizar" onclick="finalizarPedido()">Continuar pedido</button>
+
+            <form id="form-pedido" onsubmit="enviarPedido(event)">
+                <label>Nome
+                    <input id="nome" type="text" placeholder="Seu nome" required>
+                </label>
+                <label>Telefone
+                    <input id="telefone" type="tel" placeholder="(00) 00000-0000" required>
+                </label>
+                <div id="endereco-campos">
+                    <label>Endereço
+                        <input id="endereco" type="text" placeholder="Rua, número e bairro">
+                    </label>
+                    <label>Complemento
+                        <input id="complemento" type="text" placeholder="Apartamento, referência etc.">
+                    </label>
+                </div>
+                <label>Observação
+                    <textarea id="observacao" rows="3" placeholder="Ex.: tirar cebola, entregar na portaria..."></textarea>
+                </label>
+                <div class="resumo-checkout">
+                    <span>Total do pedido</span>
+                    <strong id="total-checkout">R$ 0,00</strong>
+                </div>
+                <button class="botao finalizar" type="submit">Enviar pedido pelo WhatsApp</button>
+            </form>
         </div>
     </div>
 
