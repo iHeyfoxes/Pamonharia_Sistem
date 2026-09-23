@@ -7,9 +7,8 @@ const produtos = [
     { id: 6, nome: "Café", descricao: "Café fresquinho.", preco: 5, categoria: "bebidas", emoji: "☕" }
 ];
 
-// TROQUE PELO WHATSAPP REAL DA PAMONHARIA, somente números com DDI e DDD.
 const WHATSAPP_PAMONHARIA = "5500000000000";
-
+const CHAVE_PEDIDOS = "pamonharia_pedidos";
 let carrinho = [];
 
 function dinheiro(valor) {
@@ -114,13 +113,14 @@ function alternarEndereco() {
     document.getElementById("endereco").required = delivery;
 }
 
+function salvarPedidoLocal(pedido) {
+    const pedidos = JSON.parse(localStorage.getItem(CHAVE_PEDIDOS) || "[]");
+    pedidos.push(pedido);
+    localStorage.setItem(CHAVE_PEDIDOS, JSON.stringify(pedidos));
+}
+
 function enviarPedido(event) {
     event.preventDefault();
-
-    if (WHATSAPP_PAMONHARIA === "5500000000000") {
-        alert("Antes de usar o envio pelo WhatsApp, configure o número da pamonharia no arquivo script.js.");
-        return;
-    }
 
     const nome = document.getElementById("nome").value.trim();
     const telefone = document.getElementById("telefone").value.trim();
@@ -128,6 +128,25 @@ function enviarPedido(event) {
     const endereco = document.getElementById("endereco").value.trim();
     const complemento = document.getElementById("complemento").value.trim();
     const observacao = document.getElementById("observacao").value.trim();
+    const total = calcularTotal();
+
+    const pedido = {
+        id: Date.now(),
+        data: new Date().toLocaleString("pt-BR"),
+        status: "pendente",
+        tipo,
+        cliente: { nome, telefone, endereco, complemento },
+        itens: carrinho.map(item => ({
+            id: item.id,
+            nome: item.nome,
+            preco: item.preco,
+            quantidade: item.quantidade
+        })),
+        total,
+        observacao
+    };
+
+    salvarPedidoLocal(pedido);
 
     let mensagem = "🌽 *NOVO PEDIDO - PAMONHARIA*\n\n";
     mensagem += `👤 Cliente: ${nome}\n📞 Telefone: ${telefone}\n`;
@@ -142,12 +161,20 @@ function enviarPedido(event) {
     carrinho.forEach(item => {
         mensagem += `• ${item.quantidade}x ${item.nome} — ${dinheiro(item.preco * item.quantidade)}\n`;
     });
-
-    mensagem += `\n💰 *Total: ${dinheiro(calcularTotal())}*\n`;
+    mensagem += `\n💰 *Total: ${dinheiro(total)}*\n`;
     if (observacao) mensagem += `\n📝 Observação: ${observacao}`;
 
-    const url = "https://wa.me/" + WHATSAPP_PAMONHARIA + "?text=" + encodeURIComponent(mensagem);
-    window.open(url, "_blank");
+    if (WHATSAPP_PAMONHARIA !== "5500000000000") {
+        window.open("https://wa.me/" + WHATSAPP_PAMONHARIA + "?text=" + encodeURIComponent(mensagem), "_blank");
+    } else {
+        alert("Pedido registrado no painel! Configure o WhatsApp da pamonharia para enviar também pelo WhatsApp.");
+    }
+
+    carrinho = [];
+    atualizarCarrinho();
+    document.getElementById("form-pedido").reset();
+    alternarEndereco();
+    fecharCheckout();
 }
 
 mostrarProdutos();
