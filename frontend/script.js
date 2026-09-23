@@ -1,182 +1,154 @@
-const produtos = [
-    { id: 1, nome: "Pamonha Tradicional", descricao: "Cremosa, feita com milho verde.", preco: 8, categoria: "pamonhas", emoji: "🌽" },
-    { id: 2, nome: "Pamonha com Queijo", descricao: "Pamonha cremosa com queijo.", preco: 10, categoria: "pamonhas", emoji: "🌽" },
-    { id: 3, nome: "Pamonha à Moda", descricao: "Com queijo e linguiça.", preco: 12, categoria: "pamonhas", emoji: "🌽" },
-    { id: 4, nome: "Bolo de Milho", descricao: "Bolo caseiro de milho.", preco: 7, categoria: "bolos", emoji: "🍰" },
-    { id: 5, nome: "Curau", descricao: "Curau cremoso de milho.", preco: 8, categoria: "doces", emoji: "🥣" },
-    { id: 6, nome: "Café", descricao: "Café fresquinho.", preco: 5, categoria: "bebidas", emoji: "☕" }
-];
+const SUPABASE_URL = "https://ayzfnqgffuqchzfrbixq.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_f9y_GR3y7y9XpqDhwqwKjA_X8N1rqZF";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 const WHATSAPP_PAMONHARIA = "5500000000000";
 const CHAVE_PEDIDOS = "pamonharia_pedidos";
+let produtos = [];
 let carrinho = [];
 
+const emojis = { pamonhas:"🌽", bolos:"🍰", doces:"🥣", bebidas:"☕" };
+
 function dinheiro(valor) {
-    return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    return Number(valor).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
 }
 
-function mostrarProdutos(lista = produtos) {
-    const area = document.getElementById("produtos");
-    area.innerHTML = lista.map(produto => `
+async function carregarProdutos() {
+    const {data, error} = await supabaseClient
+        .from("products")
+        .select("id,name,description,price,image_url,category_id,categories!inner(slug)")
+        .eq("active", true)
+        .order("name");
+
+    if (error) {
+        console.error("Erro ao carregar produtos:", error);
+        document.getElementById("produtos").innerHTML = "<p>Não foi possível carregar o cardápio.</p>";
+        return;
+    }
+
+    produtos = data.map(item => ({
+        id:item.id, nome:item.name, descricao:item.description||"", preco:Number(item.price),
+        categoria:item.categories.slug, imagem:item.image_url, emoji:emojis[item.categories.slug]||"🌽"
+    }));
+    mostrarProdutos();
+}
+
+function mostrarProdutos(lista=produtos) {
+    const area=document.getElementById("produtos");
+    if (!lista.length) { area.innerHTML="<p>Nenhum produto disponível nesta categoria.</p>"; return; }
+
+    area.innerHTML=lista.map(produto=>`
         <article class="produto">
-            <div class="produto-imagem">${produto.emoji}</div>
+            <div class="produto-imagem">${produto.imagem ? `<img src="${produto.imagem}" alt="${produto.nome}">` : produto.emoji}</div>
             <div class="produto-info">
-                <h3>${produto.nome}</h3>
-                <p>${produto.descricao}</p>
+                <h3>${produto.nome}</h3><p>${produto.descricao}</p>
                 <div class="preco">${dinheiro(produto.preco)}</div>
-                <button class="adicionar" onclick="adicionar(${produto.id})">Adicionar ao pedido</button>
+                <button class="adicionar" onclick="adicionar('${produto.id}')">Adicionar ao pedido</button>
             </div>
-        </article>
-    `).join("");
+        </article>`).join("");
 }
 
-function filtrar(categoria, botao) {
-    document.querySelectorAll(".categoria").forEach(item => item.classList.remove("ativa"));
+function filtrar(categoria,botao) {
+    document.querySelectorAll(".categoria").forEach(item=>item.classList.remove("ativa"));
     botao.classList.add("ativa");
-    mostrarProdutos(categoria === "todos" ? produtos : produtos.filter(item => item.categoria === categoria));
+    mostrarProdutos(categoria==="todos" ? produtos : produtos.filter(item=>item.categoria===categoria));
 }
 
 function adicionar(id) {
-    const produto = produtos.find(item => item.id === id);
-    const item = carrinho.find(item => item.id === id);
-    if (item) item.quantidade++;
-    else carrinho.push({ ...produto, quantidade: 1 });
+    const produto=produtos.find(item=>String(item.id)===String(id));
+    if(!produto)return;
+    const item=carrinho.find(item=>String(item.id)===String(id));
+    if(item)item.quantidade++; else carrinho.push({...produto,quantidade:1});
     atualizarCarrinho();
 }
 
-function alterarQuantidade(id, delta) {
-    const item = carrinho.find(item => item.id === id);
-    if (!item) return;
-    item.quantidade += delta;
-    if (item.quantidade <= 0) carrinho = carrinho.filter(item => item.id !== id);
+function alterarQuantidade(id,delta) {
+    const item=carrinho.find(item=>String(item.id)===String(id));
+    if(!item)return;
+    item.quantidade+=delta;
+    if(item.quantidade<=0)carrinho=carrinho.filter(item=>String(item.id)!==String(id));
     atualizarCarrinho();
 }
 
 function atualizarCarrinho() {
-    const contador = carrinho.reduce((total, item) => total + item.quantidade, 0);
-    document.getElementById("contador").textContent = contador;
-    const area = document.getElementById("itens-carrinho");
-
-    if (carrinho.length === 0) {
-        area.innerHTML = "<p>Seu carrinho está vazio.</p>";
-    } else {
-        area.innerHTML = carrinho.map(item => `
-            <div class="item-carrinho">
-                <div>
-                    <strong>${item.nome}</strong>
-                    <div class="controles-qtd">
-                        <button onclick="alterarQuantidade(${item.id}, -1)">−</button>
-                        <span>${item.quantidade}</span>
-                        <button onclick="alterarQuantidade(${item.id}, 1)">+</button>
-                    </div>
-                </div>
-                <strong>${dinheiro(item.preco * item.quantidade)}</strong>
-            </div>
-        `).join("");
-    }
-
-    const total = calcularTotal();
-    document.getElementById("total").textContent = dinheiro(total);
-    document.getElementById("total-checkout").textContent = dinheiro(total);
+    document.getElementById("contador").textContent=carrinho.reduce((t,i)=>t+i.quantidade,0);
+    const area=document.getElementById("itens-carrinho");
+    area.innerHTML=carrinho.length ? carrinho.map(item=>`
+        <div class="item-carrinho"><div><strong>${item.nome}</strong>
+        <div class="controles-qtd"><button onclick="alterarQuantidade('${item.id}',-1)">−</button>
+        <span>${item.quantidade}</span><button onclick="alterarQuantidade('${item.id}',1)">+</button></div></div>
+        <strong>${dinheiro(item.preco*item.quantidade)}</strong></div>`).join("") : "<p>Seu carrinho está vazio.</p>";
+    const total=calcularTotal();
+    document.getElementById("total").textContent=dinheiro(total);
+    document.getElementById("total-checkout").textContent=dinheiro(total);
 }
 
-function calcularTotal() {
-    return carrinho.reduce((soma, item) => soma + item.preco * item.quantidade, 0);
+function calcularTotal(){return carrinho.reduce((s,i)=>s+i.preco*i.quantidade,0);}
+function mostrarCarrinho(){atualizarCarrinho();document.getElementById("modal").classList.remove("escondido");}
+function fecharCarrinho(){document.getElementById("modal").classList.add("escondido");}
+function abrirCheckout(){if(!carrinho.length){alert("Adicione algum produto ao carrinho primeiro.");return;}fecharCarrinho();document.getElementById("checkout").classList.remove("escondido");}
+function fecharCheckout(){document.getElementById("checkout").classList.add("escondido");}
+function alternarEndereco(){const delivery=document.querySelector('input[name="tipoEntrega"]:checked').value==="delivery";document.getElementById("endereco-campos").style.display=delivery?"grid":"none";document.getElementById("endereco").required=delivery;}
+
+function salvarPedidoLocal(pedido){
+    const pedidos=JSON.parse(localStorage.getItem(CHAVE_PEDIDOS)||"[]");
+    pedidos.push(pedido); localStorage.setItem(CHAVE_PEDIDOS,JSON.stringify(pedidos));
 }
 
-function mostrarCarrinho() {
-    atualizarCarrinho();
-    document.getElementById("modal").classList.remove("escondido");
+async function salvarPedidoNoSupabase(nome,telefone,tipo,endereco,complemento,observacao,total) {
+    const {data:cliente,error:clienteError}=await supabaseClient.from("customers").insert({name:nome,phone:telefone}).select("id").single();
+    if(clienteError)throw clienteError;
+
+    const {data:pedido,error:pedidoError}=await supabaseClient.from("orders").insert({
+        customer_id:cliente.id, order_type:tipo, address:tipo==="delivery"?endereco:null,
+        complement:tipo==="delivery"?complemento||null:null, observation:observacao||null, total
+    }).select("id,created_at,status").single();
+    if(pedidoError)throw pedidoError;
+
+    const itens=carrinho.map(item=>({order_id:pedido.id,product_id:item.id,product_name:item.nome,unit_price:item.preco,quantity:item.quantidade,subtotal:item.preco*item.quantidade}));
+    const {error:itensError}=await supabaseClient.from("order_items").insert(itens);
+    if(itensError)throw itensError;
+    return pedido;
 }
 
-function fecharCarrinho() {
-    document.getElementById("modal").classList.add("escondido");
-}
-
-function abrirCheckout() {
-    if (carrinho.length === 0) {
-        alert("Adicione algum produto ao carrinho primeiro.");
-        return;
-    }
-    fecharCarrinho();
-    atualizarCarrinho();
-    document.getElementById("checkout").classList.remove("escondido");
-}
-
-function fecharCheckout() {
-    document.getElementById("checkout").classList.add("escondido");
-}
-
-function alternarEndereco() {
-    const delivery = document.querySelector('input[name="tipoEntrega"]:checked').value === "delivery";
-    document.getElementById("endereco-campos").style.display = delivery ? "grid" : "none";
-    document.getElementById("endereco").required = delivery;
-}
-
-function salvarPedidoLocal(pedido) {
-    const pedidos = JSON.parse(localStorage.getItem(CHAVE_PEDIDOS) || "[]");
-    pedidos.push(pedido);
-    localStorage.setItem(CHAVE_PEDIDOS, JSON.stringify(pedidos));
-}
-
-function enviarPedido(event) {
+async function enviarPedido(event) {
     event.preventDefault();
+    const nome=document.getElementById("nome").value.trim();
+    const telefone=document.getElementById("telefone").value.trim();
+    const tipo=document.querySelector('input[name="tipoEntrega"]:checked').value;
+    const endereco=document.getElementById("endereco").value.trim();
+    const complemento=document.getElementById("complemento").value.trim();
+    const observacao=document.getElementById("observacao").value.trim();
+    const total=calcularTotal();
 
-    const nome = document.getElementById("nome").value.trim();
-    const telefone = document.getElementById("telefone").value.trim();
-    const tipo = document.querySelector('input[name="tipoEntrega"]:checked').value;
-    const endereco = document.getElementById("endereco").value.trim();
-    const complemento = document.getElementById("complemento").value.trim();
-    const observacao = document.getElementById("observacao").value.trim();
-    const total = calcularTotal();
+    const pedidoLocal={id:Date.now(),data:new Date().toLocaleString("pt-BR"),status:"pendente",
+        tipo:tipo==="delivery"?"delivery":"retirada",cliente:{nome,telefone,endereco,complemento},
+        itens:carrinho.map(item=>({id:item.id,nome:item.nome,preco:item.preco,quantidade:item.quantidade})),total,observacao};
 
-    const pedido = {
-        id: Date.now(),
-        data: new Date().toLocaleString("pt-BR"),
-        status: "pendente",
-        tipo,
-        cliente: { nome, telefone, endereco, complemento },
-        itens: carrinho.map(item => ({
-            id: item.id,
-            nome: item.nome,
-            preco: item.preco,
-            quantidade: item.quantidade
-        })),
-        total,
-        observacao
-    };
-
-    salvarPedidoLocal(pedido);
-
-    let mensagem = "🌽 *NOVO PEDIDO - PAMONHARIA*\n\n";
-    mensagem += `👤 Cliente: ${nome}\n📞 Telefone: ${telefone}\n`;
-    mensagem += tipo === "delivery" ? "🛵 Entrega\n" : "🏪 Retirada na loja\n";
-
-    if (tipo === "delivery") {
-        mensagem += `📍 Endereço: ${endereco}\n`;
-        if (complemento) mensagem += `📌 Complemento: ${complemento}\n`;
+    try {
+        const pedidoBanco=await salvarPedidoNoSupabase(nome,telefone,tipo,endereco,complemento,observacao,total);
+        pedidoLocal.id=pedidoBanco.id;
+        pedidoLocal.data=new Date(pedidoBanco.created_at).toLocaleString("pt-BR");
+        salvarPedidoLocal(pedidoLocal);
+    } catch(error) {
+        console.error("Erro ao salvar pedido no Supabase:",error);
+        salvarPedidoLocal(pedidoLocal);
+        alert("O pedido foi salvo neste navegador, mas não foi possível sincronizar com o banco.");
     }
 
-    mensagem += "\n*Itens:*\n";
-    carrinho.forEach(item => {
-        mensagem += `• ${item.quantidade}x ${item.nome} — ${dinheiro(item.preco * item.quantidade)}\n`;
-    });
-    mensagem += `\n💰 *Total: ${dinheiro(total)}*\n`;
-    if (observacao) mensagem += `\n📝 Observação: ${observacao}`;
+    let mensagem="🌽 *NOVO PEDIDO - PAMONHARIA*\n\n";
+    mensagem+=`👤 Cliente: ${nome}\n📞 Telefone: ${telefone}\n`;
+    mensagem+=tipo==="delivery"?"🛵 Entrega\n":"🏪 Retirada na loja\n";
+    if(tipo==="delivery"){mensagem+=`📍 Endereço: ${endereco}\n`;if(complemento)mensagem+=`📌 Complemento: ${complemento}\n`;}
+    mensagem+="\n*Itens:*\n";
+    carrinho.forEach(item=>mensagem+=`• ${item.quantidade}x ${item.nome} — ${dinheiro(item.preco*item.quantidade)}\n`);
+    mensagem+=`\n💰 *Total: ${dinheiro(total)}*\n`;
+    if(observacao)mensagem+=`\n📝 Observação: ${observacao}`;
 
-    if (WHATSAPP_PAMONHARIA !== "5500000000000") {
-        window.open("https://wa.me/" + WHATSAPP_PAMONHARIA + "?text=" + encodeURIComponent(mensagem), "_blank");
-    } else {
-        alert("Pedido registrado no painel! Configure o WhatsApp da pamonharia para enviar também pelo WhatsApp.");
-    }
+    if(WHATSAPP_PAMONHARIA!=="5500000000000")window.open("https://wa.me/"+WHATSAPP_PAMONHARIA+"?text="+encodeURIComponent(mensagem),"_blank");
+    else alert("Pedido registrado no banco! Configure o WhatsApp da pamonharia para enviar também pelo WhatsApp.");
 
-    carrinho = [];
-    atualizarCarrinho();
-    document.getElementById("form-pedido").reset();
-    alternarEndereco();
-    fecharCheckout();
+    carrinho=[];atualizarCarrinho();document.getElementById("form-pedido").reset();alternarEndereco();fecharCheckout();
 }
 
-mostrarProdutos();
-atualizarCarrinho();
-alternarEndereco();
+carregarProdutos();atualizarCarrinho();alternarEndereco();
