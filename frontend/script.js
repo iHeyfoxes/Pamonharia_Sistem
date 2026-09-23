@@ -2,14 +2,14 @@ const SUPABASE_URL = "https://ayzfnqgffuqchzfrbixq.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_f9y_GR3y7y9XpqDhwqwKjA_X8N1rqZF";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-const WHATSAPP_PAMONHARIA = "5500000000000";
+let configuracoes = { business_name: "Pamonharia", whatsapp_number: "", delivery_fee: 0, minimum_order: 0 };
 const CHAVE_PEDIDOS = "pamonharia_pedidos";
 let produtos = [];
 let carrinho = [];
 
 const emojis = { pamonhas:"🌽", bolos:"🍰", doces:"🥣", bebidas:"☕" };
 
-function dinheiro(valor) {
+async function carregarConfiguracoes() {\n    const { data, error } = await supabaseClient.from("pamonharia_settings").select("business_name,whatsapp_number,delivery_fee,minimum_order").eq("id",1).single();\n    if (!error && data) configuracoes = data;\n}\n\nfunction dinheiro(valor) {
     return Number(valor).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
 }
 
@@ -166,4 +166,4 @@ async function enviarPedido(event) {
     carrinho=[];atualizarCarrinho();document.getElementById("form-pedido").reset();alternarEndereco();fecharCheckout();
 }
 
-carregarProdutos();atualizarCarrinho();alternarEndereco();
+carregarProdutos();carregarConfiguracoes();atualizarCarrinho();alternarEndereco();
