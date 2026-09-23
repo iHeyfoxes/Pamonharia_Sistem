@@ -13,7 +13,6 @@
             <button class="carrinho" onclick="mostrarCarrinho()">🛒 Carrinho <span id="contador">0</span></button>
         </div>
     </header>
-
     <main>
         <section class="hero">
             <div class="container hero-conteudo">
@@ -25,7 +24,6 @@
                 </div>
             </div>
         </section>
-
         <section id="cardapio" class="cardapio container">
             <div class="titulo-secao">
                 <p class="etiqueta">NOSSO CARDÁPIO</p>
@@ -41,7 +39,6 @@
             <div id="produtos" class="produtos"></div>
         </section>
     </main>
-
     <div id="modal" class="modal escondido">
         <div class="modal-caixa">
             <button class="fechar" onclick="fecharCarrinho()">×</button>
@@ -51,24 +48,21 @@
             <button class="botao finalizar" onclick="abrirCheckout()">Continuar pedido</button>
         </div>
     </div>
-
     <div id="checkout" class="modal escondido">
         <div class="modal-caixa checkout-caixa">
             <button class="fechar" onclick="fecharCheckout()">×</button>
             <p class="etiqueta">FINALIZAR PEDIDO</p>
             <h2>Como você quer receber?</h2>
-
             <div class="opcoes-entrega">
                 <label class="opcao-entrega">
                     <input type="radio" name="tipoEntrega" value="delivery" checked onchange="alternarEndereco()">
                     <span>🛵 Entrega</span>
                 </label>
                 <label class="opcao-entrega">
-                    <input type="radio" name="tipoEntrega" value="retirada" onchange="alternarEndereco()">
+                    <input type="radio" name="tipoEntrega" value="pickup" onchange="alternarEndereco()">
                     <span>🏪 Retirar na loja</span>
                 </label>
             </div>
-
             <form id="form-pedido" onsubmit="enviarPedido(event)">
                 <label>Nome
                     <input id="nome" type="text" placeholder="Seu nome" required>
@@ -95,7 +89,7 @@
             </form>
         </div>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
 </body>
 </html>
