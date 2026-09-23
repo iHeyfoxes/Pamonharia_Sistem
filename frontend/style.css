@@ -1,0 +1,255 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #fffaf2;
+    color: #2f241d;
+}
+
+.container {
+    width: min(1100px, 92%);
+    margin: auto;
+}
+
+.topo {
+    background: #fff;
+    border-bottom: 1px solid #eee2d5;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.topo-conteudo {
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.logo span {
+    color: #6b451d;
+}
+
+.carrinho {
+    border: 0;
+    background: #f2b705;
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#contador {
+    background: #fff;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-left: 4px;
+}
+
+.hero {
+    background: linear-gradient(135deg, #fff0bd, #f8d56c);
+}
+
+.hero-conteudo {
+    min-height: 430px;
+    display: flex;
+    align-items: center;
+}
+
+.hero h1 {
+    max-width: 650px;
+    font-size: clamp(38px, 6vw, 68px);
+    line-height: 1;
+    margin: 12px 0 20px;
+}
+
+.hero p:not(.etiqueta) {
+    max-width: 580px;
+    font-size: 19px;
+    line-height: 1.6;
+    margin-bottom: 28px;
+}
+
+.etiqueta {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #8a5a20;
+}
+
+.botao {
+    display: inline-block;
+    border: 0;
+    background: #6b451d;
+    color: white;
+    padding: 14px 24px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.cardapio {
+    padding: 70px 0;
+}
+
+.titulo-secao h2 {
+    font-size: 36px;
+    margin-top: 8px;
+}
+
+.categorias {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 28px 0;
+}
+
+.categoria {
+    border: 1px solid #dfd0bd;
+    background: white;
+    padding: 10px 16px;
+    border-radius: 30px;
+    cursor: pointer;
+}
+
+.categoria.ativa {
+    background: #6b451d;
+    color: white;
+}
+
+.produtos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.produto {
+    background: white;
+    border: 1px solid #eee2d5;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(80, 50, 20, .06);
+}
+
+.produto-imagem {
+    height: 170px;
+    display: grid;
+    place-items: center;
+    font-size: 70px;
+    background: #fff1c7;
+}
+
+.produto-info {
+    padding: 18px;
+}
+
+.produto h3 {
+    margin-bottom: 8px;
+}
+
+.produto p {
+    color: #75685e;
+    min-height: 42px;
+    line-height: 1.4;
+}
+
+.preco {
+    font-size: 20px;
+    font-weight: 800;
+    margin: 14px 0;
+}
+
+.adicionar {
+    width: 100%;
+    border: 0;
+    background: #f2b705;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    z-index: 20;
+}
+
+.modal.escondido {
+    display: none;
+}
+
+.modal-caixa {
+    background: white;
+    width: min(500px, 100%);
+    max-height: 85vh;
+    overflow: auto;
+    border-radius: 18px;
+    padding: 25px;
+    position: relative;
+}
+
+.fechar {
+    position: absolute;
+    right: 18px;
+    top: 12px;
+    border: 0;
+    background: none;
+    font-size: 30px;
+    cursor: pointer;
+}
+
+.item-carrinho {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 20px;
+    margin: 20px 0;
+}
+
+.finalizar {
+    width: 100%;
+}
+
+@media (max-width: 600px) {
+    .hero-conteudo {
+        min-height: 380px;
+    }
+
+    .topo-conteudo {
+        height: 64px;
+    }
+
+    .logo {
+        font-size: 20px;
+    }
+
+    .carrinho {
+        padding: 10px 12px;
+    }
+}

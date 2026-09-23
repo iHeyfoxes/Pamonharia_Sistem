@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pamonharia</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="topo">
+        <div class="container topo-conteudo">
+            <div class="logo">🌽 <span>Pamonharia</span></div>
+            <button class="carrinho" onclick="mostrarCarrinho()">
+                🛒 Carrinho <span id="contador">0</span>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container hero-conteudo">
+                <div>
+                    <p class="etiqueta">FEITO COM CARINHO</p>
+                    <h1>O verdadeiro sabor do milho 🌽</h1>
+                    <p>Escolha suas pamonhas, monte seu pedido e receba em casa ou retire na loja.</p>
+                    <a href="#cardapio" class="botao">Fazer pedido</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="cardapio" class="cardapio container">
+            <div class="titulo-secao">
+                <p class="etiqueta">NOSSO CARDÁPIO</p>
+                <h2>Escolha seus favoritos</h2>
+            </div>
+
+            <div class="categorias">
+                <button class="categoria ativa" onclick="filtrar('todos', this)">Todos</button>
+                <button class="categoria" onclick="filtrar('pamonhas', this)">🌽 Pamonhas</button>
+                <button class="categoria" onclick="filtrar('bolos', this)">🍰 Bolos</button>
+                <button class="categoria" onclick="filtrar('doces', this)">🥣 Doces</button>
+                <button class="categoria" onclick="filtrar('bebidas', this)">🥤 Bebidas</button>
+            </div>
+
+            <div id="produtos" class="produtos"></div>
+        </section>
+    </main>
+
+    <div id="modal" class="modal escondido">
+        <div class="modal-caixa">
+            <button class="fechar" onclick="fecharCarrinho()">×</button>
+            <h2>Seu carrinho 🛒</h2>
+            <div id="itens-carrinho"></div>
+            <div class="total">
+                <span>Total</span>
+                <strong id="total">R$ 0,00</strong>
+            </div>
+            <button class="botao finalizar" onclick="finalizarPedido()">Continuar pedido</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
